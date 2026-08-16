@@ -1,7 +1,6 @@
 package org.allaymc.api.entity.component;
 
 import org.allaymc.api.entity.interfaces.EntityPlayer;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;
 
 import java.util.List;
@@ -30,7 +29,7 @@ public interface EntityRideableComponent extends EntityComponent {
      *
      * @return the controlling passenger, or {@code null} if this entity has no controller
      */
-    @Nullable EntityPlayer getControllingPassenger();
+    EntityPlayer getControllingPassenger();
 
     /**
      * Attempts to add a player as a passenger.

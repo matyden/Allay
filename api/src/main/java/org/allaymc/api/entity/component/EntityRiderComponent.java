@@ -2,7 +2,6 @@ package org.allaymc.api.entity.component;
 
 import org.allaymc.api.entity.Entity;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * State held by an entity which can ride another entity.
@@ -13,7 +12,7 @@ public interface EntityRiderComponent extends EntityComponent {
      *
      * @return the vehicle, or {@code null} if this entity is not riding
      */
-    @Nullable Entity getVehicle();
+    Entity getVehicle();
 
     /**
      * Checks whether this entity is currently riding another entity.
@@ -30,5 +29,5 @@ public interface EntityRiderComponent extends EntityComponent {
      * @param vehicle the vehicle being ridden, or {@code null} to clear the relationship
      */
     @ApiStatus.Internal
-    void setVehicle(@Nullable Entity vehicle);
+    void setVehicle(Entity vehicle);
 }

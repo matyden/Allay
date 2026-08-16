@@ -7,6 +7,7 @@ import org.allaymc.api.container.ContainerTypes;
 import org.allaymc.api.entity.component.EntityContainerHolderComponent;
 import org.allaymc.api.entity.component.EntityPhysicsComponent;
 import org.allaymc.api.entity.component.EntityPlayerBaseComponent;
+import org.allaymc.api.entity.component.EntityRiderComponent;
 import org.allaymc.api.entity.component.EntitySleepableComponent;
 import org.allaymc.api.eventbus.event.player.PlayerDropItemEvent;
 import org.allaymc.api.eventbus.event.player.PlayerItemHeldEvent;
@@ -29,6 +30,7 @@ public interface EntityPlayer extends
         EntityContainerHolderComponent,
         EntityPhysicsComponent,
         EntityPlayerBaseComponent,
+        EntityRiderComponent,
         EntitySleepableComponent {
 
     /**

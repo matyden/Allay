@@ -7,7 +7,7 @@ import org.joml.Vector2fc;
 /**
  * Boat-specific state and behavior.
  */
-public interface EntityBoatBaseComponent extends EntityBaseComponent, EntityRideableComponent {
+public interface EntityBoatBaseComponent extends EntityBaseComponent {
     /**
      * Gets the visual and material variant of this boat.
      *

@@ -5,6 +5,10 @@ import org.allaymc.api.entity.Entity;
 import org.allaymc.api.block.dto.PlayerInteractInfo;
 import org.allaymc.api.block.type.BlockTypes;
 import org.allaymc.api.entity.component.EntityPhysicsComponent;
+import org.allaymc.api.entity.component.EntityBoatBaseComponent;
+import org.allaymc.api.entity.component.EntityPlayerBaseComponent;
+import org.allaymc.api.entity.component.EntityRideableComponent;
+import org.allaymc.api.entity.component.EntityRiderComponent;
 import org.allaymc.api.entity.data.BoatVariant;
 import org.allaymc.api.entity.interfaces.EntityBoat;
 import org.allaymc.api.entity.interfaces.EntityPlayer;
@@ -40,6 +44,14 @@ import static org.mockito.ArgumentMatchers.any;
 @ExtendWith(AllayTestExtension.class)
 class BoatEntityTest {
     private final Dimension dimension = Mockito.mock(Dimension.class);
+
+    @Test
+    void ridingContractsAreSeparateFromBaseComponents() {
+        assertFalse(EntityRideableComponent.class.isAssignableFrom(EntityBoatBaseComponent.class));
+        assertFalse(EntityRiderComponent.class.isAssignableFrom(EntityPlayerBaseComponent.class));
+        assertTrue(EntityRideableComponent.class.isAssignableFrom(EntityBoat.class));
+        assertTrue(EntityRiderComponent.class.isAssignableFrom(EntityPlayer.class));
+    }
 
     @Test
     void boatTypeHasFunctionalComponentsAndVanillaBounds() {

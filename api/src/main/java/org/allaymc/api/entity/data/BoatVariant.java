@@ -1,7 +1,5 @@
 package org.allaymc.api.entity.data;
 
-import org.jetbrains.annotations.Nullable;
-
 /**
  * Visual/material variants used by vanilla boat entities.
  */
@@ -31,7 +29,7 @@ public enum BoatVariant {
         return this == BAMBOO;
     }
 
-    public static @Nullable BoatVariant fromNetworkId(int networkId) {
+    public static BoatVariant fromNetworkId(int networkId) {
         for (var variant : values()) {
             if (variant.networkId == networkId) {
                 return variant;

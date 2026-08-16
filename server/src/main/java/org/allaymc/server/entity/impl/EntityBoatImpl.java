@@ -7,6 +7,7 @@ import org.allaymc.api.entity.EntityInitInfo;
 import org.allaymc.api.entity.component.EntityBoatBaseComponent;
 import org.allaymc.api.entity.component.EntityLivingComponent;
 import org.allaymc.api.entity.component.EntityPhysicsComponent;
+import org.allaymc.api.entity.component.EntityRideableComponent;
 import org.allaymc.api.entity.interfaces.EntityBoat;
 import org.allaymc.server.component.ComponentProvider;
 
@@ -20,6 +21,8 @@ public class EntityBoatImpl extends EntityImpl implements EntityBoat {
     @Getter
     @Delegate
     private EntityPhysicsComponent physicsComponent;
+    @Delegate
+    private EntityRideableComponent rideableComponent;
 
     public EntityBoatImpl(EntityInitInfo initInfo,
                           List<ComponentProvider<? extends Component>> componentProviders) {

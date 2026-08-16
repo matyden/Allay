@@ -9,6 +9,7 @@ import org.allaymc.api.block.type.BlockState;
 import org.allaymc.api.entity.Entity;
 import org.allaymc.api.entity.component.EntityPhysicsComponent;
 import org.allaymc.api.entity.component.EntityPhysicsComponent.LiquidState;
+import org.allaymc.api.entity.component.EntityRideableComponent;
 import org.allaymc.api.entity.interfaces.EntityLiving;
 import org.allaymc.api.entity.interfaces.EntityPlayer;
 import org.allaymc.api.eventbus.event.player.PlayerMoveEvent;
@@ -251,7 +252,12 @@ public class AllayEntityPhysicsEngine implements EntityPhysicsEngine {
 
         var location = entity.getLocation();
         var pushSpeedReduction = ((EntityPhysicsComponent) entity).getPushSpeedReduction();
+        var passengers = entity instanceof EntityRideableComponent rideable ? rideable.getPassengers() : Collections.emptyList();
         for (var other : collidedEntities) {
+            if (passengers.contains(other)) {
+                continue;
+            }
+
             // https://github.com/lovexyn0827/Discovering-Minecraft/blob/master/Minecraft%E5%AE%9E%E4%BD%93%E8%BF%90%E5%8A%A8%E7%A0%94%E7%A9%B6%E4%B8%8E%E5%BA%94%E7%94%A8/5-Chapter-5.md
             var ol = other.getLocation();
             var direction = MathUtils.normalizeIfNotZero(new Vector3d(entity.getLocation()).sub(other.getLocation(), new Vector3d()));

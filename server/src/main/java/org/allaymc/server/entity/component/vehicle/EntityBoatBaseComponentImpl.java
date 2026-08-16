@@ -4,19 +4,14 @@ import lombok.Getter;
 import org.allaymc.api.entity.EntityInitInfo;
 import org.allaymc.api.entity.component.EntityBoatBaseComponent;
 import org.allaymc.api.entity.component.EntityPhysicsComponent;
+import org.allaymc.api.entity.component.EntityRideableComponent;
 import org.allaymc.api.entity.data.BoatVariant;
-import org.allaymc.api.entity.data.EntityLinkType;
-import org.allaymc.api.entity.interfaces.EntityBoat;
 import org.allaymc.api.entity.interfaces.EntityPlayer;
 import org.allaymc.api.eventbus.EventHandler;
 import org.allaymc.api.item.ItemStack;
 import org.allaymc.api.math.location.Location3d;
-import org.allaymc.api.player.GameMode;
-import org.allaymc.server.component.annotation.ComponentObject;
 import org.allaymc.server.component.annotation.Dependency;
 import org.allaymc.server.entity.component.EntityBaseComponentImpl;
-import org.allaymc.server.entity.component.event.CEntityBeforeTeleportEvent;
-import org.allaymc.server.entity.component.event.CEntityDieEvent;
 import org.allaymc.server.entity.component.event.CEntityLoadNBTEvent;
 import org.allaymc.server.entity.component.event.CEntitySaveNBTEvent;
 import org.allaymc.server.entity.component.event.CEntityTickEvent;
@@ -26,9 +21,6 @@ import org.joml.Vector3d;
 import org.joml.primitives.AABBd;
 import org.joml.primitives.AABBdc;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -39,14 +31,13 @@ public class EntityBoatBaseComponentImpl extends EntityBaseComponentImpl impleme
     protected static final int INPUT_EXPIRY_TICKS = 2;
     protected static final double MAX_HORIZONTAL_SPEED = 0.4;
 
-    @ComponentObject
-    protected EntityBoat boat;
     @Dependency
     protected EntityPhysicsComponent physicsComponent;
+    @Dependency
+    protected EntityRideableComponent rideableComponent;
 
     @Getter
     protected BoatVariant boatVariant = BoatVariant.OAK;
-    protected final List<EntityPlayer> passengers = new ArrayList<>(2);
     protected final Vector2f movementInput = new Vector2f();
     @Getter
     protected boolean paddlingLeft;
@@ -75,75 +66,13 @@ public class EntityBoatBaseComponentImpl extends EntityBaseComponentImpl impleme
     }
 
     @Override
-    public int getPassengerCapacity() {
-        return 2;
-    }
-
-    @Override
-    public synchronized List<EntityPlayer> getPassengers() {
-        return List.copyOf(passengers);
-    }
-
-    @Override
-    public synchronized EntityPlayer getControllingPassenger() {
-        return passengers.isEmpty() ? null : passengers.getFirst();
-    }
-
-    @Override
-    public synchronized boolean addPassenger(EntityPlayer passenger) {
-        if (passenger == null || passenger.getGameMode() == GameMode.SPECTATOR ||
-            passenger.getDimension() != getDimension() || passenger.isRiding() ||
-            passengers.contains(passenger) || passengers.size() >= getPassengerCapacity()) {
-            return false;
-        }
-
-        passengers.add(passenger);
-        passenger.setVehicle(boat);
-        broadcastLink(passenger, passengers.size() == 1 ? EntityLinkType.RIDER : EntityLinkType.PASSENGER);
-        broadcastState();
-        updatePassengerPositions();
-        return true;
-    }
-
-    @Override
-    public synchronized boolean removePassenger(EntityPlayer passenger) {
-        var index = passengers.indexOf(passenger);
-        if (index < 0) {
-            return false;
-        }
-
-        broadcastLink(passenger, EntityLinkType.REMOVE);
-        passengers.remove(index);
-        passenger.setVehicle(null);
-        movePassengerToDismountPosition(passenger);
-
-        if (index == 0 && !passengers.isEmpty()) {
-            var promoted = passengers.getFirst();
-            broadcastLink(promoted, EntityLinkType.REMOVE);
-            broadcastLink(promoted, EntityLinkType.RIDER);
-        }
-
-        clearInput();
-        broadcastState();
-        updatePassengerPositions();
-        return true;
-    }
-
-    @Override
-    public synchronized void ejectPassengers() {
-        for (var passenger : List.copyOf(passengers)) {
-            removePassenger(passenger);
-        }
-    }
-
-    @Override
     public boolean onInteract(EntityPlayer player, ItemStack itemStack) {
-        return addPassenger(player);
+        return rideableComponent.addPassenger(player);
     }
 
     @Override
-    public synchronized void setPaddleInput(EntityPlayer player, Vector2fc movement, boolean paddleLeft, boolean paddleRight) {
-        if (player != getControllingPassenger()) {
+    public void setPaddleInput(EntityPlayer player, Vector2fc movement, boolean paddleLeft, boolean paddleRight) {
+        if (player != rideableComponent.getControllingPassenger()) {
             return;
         }
 
@@ -154,8 +83,8 @@ public class EntityBoatBaseComponentImpl extends EntityBaseComponentImpl impleme
     }
 
     @EventHandler
-    protected synchronized void onTick(CEntityTickEvent event) {
-        if (getControllingPassenger() == null || getTick() - lastInputTick > INPUT_EXPIRY_TICKS) {
+    protected void onTick(CEntityTickEvent event) {
+        if (rideableComponent.getControllingPassenger() == null || getTick() - lastInputTick > INPUT_EXPIRY_TICKS) {
             clearInput();
         }
 
@@ -164,7 +93,7 @@ public class EntityBoatBaseComponentImpl extends EntityBaseComponentImpl impleme
     }
 
     protected void applyControlInput() {
-        if (getControllingPassenger() == null) {
+        if (rideableComponent.getControllingPassenger() == null) {
             return;
         }
 
@@ -225,7 +154,8 @@ public class EntityBoatBaseComponentImpl extends EntityBaseComponentImpl impleme
     }
 
     @Override
-    public synchronized void updatePassengerPositions() {
+    public void updatePassengerPositions() {
+        var passengers = rideableComponent.getPassengers();
         if (passengers.isEmpty()) {
             return;
         }
@@ -245,36 +175,6 @@ public class EntityBoatBaseComponentImpl extends EntityBaseComponentImpl impleme
         }
     }
 
-    protected void movePassengerToDismountPosition(EntityPlayer passenger) {
-        var yaw = Math.toRadians(getLocation().yaw());
-        var sideX = Math.cos(yaw) * 1.5;
-        var sideZ = Math.sin(yaw) * 1.5;
-        var candidates = new double[][]{
-                {getLocation().x() + sideX, getLocation().y(), getLocation().z() + sideZ},
-                {getLocation().x() - sideX, getLocation().y(), getLocation().z() - sideZ},
-                {getLocation().x() + sideZ, getLocation().y(), getLocation().z() - sideX},
-                {getLocation().x() - sideZ, getLocation().y(), getLocation().z() + sideX}
-        };
-        for (var candidate : candidates) {
-            var aabb = passenger.getAABB().translate(candidate[0], candidate[1], candidate[2], new AABBd());
-            if (getDimension().getCollidingBlockStates(aabb) == null && !aabb.intersectsAABB(getOffsetAABB())) {
-                passenger.trySetLocation(new Location3d(candidate[0], candidate[1], candidate[2],
-                        passenger.getLocation().pitch(), passenger.getLocation().yaw(), getDimension()));
-                return;
-            }
-        }
-        passenger.trySetLocation(new Location3d(getLocation().x(), getLocation().y() + 0.6, getLocation().z(),
-                passenger.getLocation().pitch(), passenger.getLocation().yaw(), getDimension()));
-    }
-
-    protected void broadcastLink(EntityPlayer passenger, EntityLinkType linkType) {
-        var viewers = new LinkedHashSet<>(getViewers());
-        if (passenger.getController() != null) {
-            viewers.add(passenger.getController());
-        }
-        viewers.forEach(viewer -> viewer.viewEntityLink(boat, passenger, linkType));
-    }
-
     @EventHandler
     protected void onSaveNBT(CEntitySaveNBTEvent event) {
         event.getNbt().putInt(TAG_VARIANT, boatVariant.getNetworkId());
@@ -288,13 +188,4 @@ public class EntityBoatBaseComponentImpl extends EntityBaseComponentImpl impleme
         }
     }
 
-    @EventHandler
-    protected void onBeforeTeleport(CEntityBeforeTeleportEvent event) {
-        ejectPassengers();
-    }
-
-    @EventHandler
-    protected void onDie(CEntityDieEvent event) {
-        ejectPassengers();
-    }
 }

@@ -46,6 +46,7 @@ import org.allaymc.server.entity.component.projectile.*;
 import org.allaymc.server.entity.component.vehicle.EntityBoatBaseComponentImpl;
 import org.allaymc.server.entity.component.vehicle.EntityBoatLivingComponentImpl;
 import org.allaymc.server.entity.component.vehicle.EntityBoatPhysicsComponentImpl;
+import org.allaymc.server.entity.component.vehicle.EntityBoatRideableComponentImpl;
 import org.allaymc.server.entity.data.EntityId;
 import org.allaymc.server.entity.impl.*;
 import org.joml.Vector3i;
@@ -68,6 +69,7 @@ public final class EntityTypeInitializer {
                 .addComponent(EntityBoatBaseComponentImpl::new, EntityBoatBaseComponentImpl.class)
                 .addComponent(EntityBoatLivingComponentImpl::new, EntityBoatLivingComponentImpl.class)
                 .addComponent(EntityBoatPhysicsComponentImpl::new, EntityBoatPhysicsComponentImpl.class)
+                .addComponent(EntityBoatRideableComponentImpl::new, EntityBoatRideableComponentImpl.class)
                 .build();
     }
 
@@ -191,6 +193,7 @@ public final class EntityTypeInitializer {
                 .addComponent(EntityPlayerContainerHolderComponentImpl::new, EntityPlayerContainerHolderComponentImpl.class)
                 .addComponent(EntityPlayerLivingComponentImpl::new, EntityPlayerLivingComponentImpl.class)
                 .addComponent(EntityPlayerPhysicsComponentImpl::new, EntityPlayerPhysicsComponentImpl.class)
+                .addComponent(EntityRiderComponentImpl::new, EntityRiderComponentImpl.class)
                 .addComponent(EntitySleepableComponentImpl::new, EntitySleepableComponentImpl.class)
                 .build();
     }
